@@ -1,7 +1,55 @@
-# ajna-burn-monitor
+# Ajna Burn Monitor
 
-Personal project repository.
+A minimal, local-only dashboard for tracking AJNA burns. It uses a generated JSON snapshot for fast local development and can refresh that snapshot from Dune when needed.
 
-The burn dashboard uses AJNA's documented 1B protocol-launch / max-supply baseline and Dune's indexed Ethereum transfer tables. The chart starts on September 6, 2023, while the raw history table keeps the full launch history from January 24, 2023 onward.
+## What It Shows
 
-To refresh the snapshot locally, set `DUNE_API_KEY` in your environment and run `npm run sync:burns`.
+- Cumulative AJNA burned since September 6, 2023
+- Remaining supply based on AJNA's documented 1B protocol-launch / max-supply baseline
+- A transaction table with direct Etherscan links
+- A very bare UI that is easy to restyle later with Tailwind
+
+## Getting Started
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+
+   - Copy `.env.example` to `.env`
+   - Set `DUNE_API_KEY`
+   - Optionally adjust `DUNE_API_BASE_URL`
+
+3. Refresh the local snapshot from Dune if you want current data:
+
+   ```bash
+   npm run sync:burns
+   ```
+
+4. Start the local app:
+
+   ```bash
+   npm run dev
+   ```
+
+## Scripts
+
+- `npm run dev` - start the Vite dev server
+- `npm run build` - type-check and build production assets
+- `npm run preview` - preview the production build locally
+- `npm run sync:burns` - fetch AJNA burn data from Dune and write `public/data/burns.json` and `public/data/summary.json`
+- `npm test` - run the Vitest suite
+- `npm run typecheck` - run TypeScript checks
+- `npm run lint` - run ESLint
+- `npm run format` - format the codebase with Prettier
+- `npm run format:check` - check formatting without writing changes
+
+## Data Notes
+
+- The burn series starts on September 6, 2023 so the chart stays stable.
+- The snapshot is stored locally in `public/data/`.
+- Deployment is intentionally deferred for now.
+
