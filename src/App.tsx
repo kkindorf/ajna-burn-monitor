@@ -21,6 +21,13 @@ type LoadState =
 
 const DEFAULT_VISIBLE_ROWS = 25;
 
+function buildPublicUrl(path: string): string {
+  const base = import.meta.env.BASE_URL;
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${normalizedBase}${normalizedPath}`;
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path, {
     headers: {
@@ -46,8 +53,8 @@ export default function App() {
     async function loadData() {
       try {
         const [summary, burns] = await Promise.all([
-          fetchJson<BurnSummary>('/data/summary.json'),
-          fetchJson<BurnTransaction[]>('/data/burns.json'),
+          fetchJson<BurnSummary>(buildPublicUrl('data/summary.json')),
+          fetchJson<BurnTransaction[]>(buildPublicUrl('data/burns.json')),
         ]);
 
         if (!active) {

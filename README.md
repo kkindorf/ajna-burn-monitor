@@ -1,6 +1,6 @@
 # Ajna Burn Monitor
 
-A minimal, local-only dashboard for tracking AJNA burns. It uses a generated JSON snapshot for fast local development and can refresh that snapshot from Dune when needed.
+A minimal dashboard for tracking AJNA burns. It uses a generated JSON snapshot for fast local development and can refresh that snapshot from Dune when needed. The intended public home for the site is `ajnaburn.eth`, surfaced through the `eth.limo` gateway.
 
 ## What It Shows
 
@@ -51,16 +51,18 @@ A minimal, local-only dashboard for tracking AJNA burns. It uses a generated JSO
 
 - The burn series starts on September 6, 2023 so the chart stays stable.
 - The snapshot is stored locally in `public/data/`.
-- Deployment is intentionally deferred for now.
+- The app is built with a relative asset base so it can be published to ENS/IPFS and served through `ajnaburn.eth.limo`.
 
 ## Deployment
 
-Deployment is not enabled yet. For now, the GitHub workflow only runs lint, tests, and a production build on pushes, pull requests, and manual dispatches.
+`eth.limo` is the gateway, not the storage layer. To publish `ajnaburn.eth`, the site needs to live on IPFS, Swarm, or Arweave, and the ENS `contenthash` record needs to point at that content.
 
-When you're ready to publish the app, the next step is to extend the workflow with a deploy job for whichever host you choose. A common setup is:
+Current GitHub Actions CI only runs lint, tests, and a production build on pushes, pull requests, and manual dispatches.
 
-- keep the current CI job as-is
-- add a scheduled or manual data refresh job if you want GitHub Actions to regenerate `public/data/`
-- add a deploy job once the hosting target is decided
+When you're ready to publish the app, the remaining steps are:
 
-This keeps the repository local-first until you're ready to turn deployment on.
+- upload the built `dist/` folder to your chosen decentralized host
+- set the ENS `contenthash` for `ajnaburn.eth`
+- access the site at `https://ajnaburn.eth.limo/`
+
+If you want automated publishing, the repo will need a pinning or upload service plus credentials.
