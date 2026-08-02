@@ -53,3 +53,14 @@ A minimal, local-only dashboard for tracking AJNA burns. It uses a generated JSO
 - The snapshot is stored locally in `public/data/`.
 - Deployment is intentionally deferred for now.
 
+## Deployment
+
+Deployment is not enabled yet. For now, the GitHub workflow only runs lint, tests, and a production build on pushes, pull requests, and manual dispatches.
+
+When you're ready to publish the app, the next step is to extend the workflow with a deploy job for whichever host you choose. A common setup is:
+
+- keep the current CI job as-is
+- add a scheduled or manual data refresh job if you want GitHub Actions to regenerate `public/data/`
+- add a deploy job once the hosting target is decided
+
+This keeps the repository local-first until you're ready to turn deployment on.
