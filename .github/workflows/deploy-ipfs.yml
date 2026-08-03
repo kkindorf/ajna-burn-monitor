@@ -1,0 +1,63 @@
+name: Deploy frontend to IPFS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+concurrency:
+  group: deploy-frontend-ipfs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      VITE_BURNS_DATA_BASE_URL: https://ajna-burn-monitor-api.vercel.app/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Deploy build to IPFS
+        id: deploy
+        uses: ipshipyard/ipfs-deploy-action@v1
+        with:
+          path-to-deploy: dist
+          github-token: ${{ github.token }}
+          filebase-access-key: ${{ secrets.FILEBASE_ACCESS_KEY }}
+          filebase-secret-key: ${{ secrets.FILEBASE_SECRET_KEY }}
+          filebase-bucket: ${{ secrets.FILEBASE_BUCKET }}
+          set-pr-comment: false
+          set-github-status: true
+          pin-name: ajna-burn-monitor-${{ github.sha }}
+
+      - name: Publish CID summary
+        run: |
+          {
+            echo "### IPFS deployment"
+            echo ""
+            echo "- CID: \`${{ steps.deploy.outputs.cid }}\`"
+            echo "- Gateway preview: https://ipfs.io/ipfs/${{ steps.deploy.outputs.cid }}/"
+            echo "- ENS target: \`ipfs://${{ steps.deploy.outputs.cid }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
