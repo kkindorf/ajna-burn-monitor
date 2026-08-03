@@ -1,20 +1,22 @@
 # Ajna Burn Monitor
 
-Minimal frontend for the AJNA burn dashboard.
+Ajna Burn Monitor is a minimal frontend for the AJNA burn dashboard.
 
-This repo now only handles the UI. The burn data itself comes from the separate `ajna-burn-monitor-api` repo, which serves:
+The live site is [ajnaburn.eth.limo](https://ajnaburn.eth.limo/).
+
+The app reads snapshot data from the separate `ajna-burn-monitor-api` repo:
 
 - `/data/summary.json`
 - `/data/burns.json`
 
 ## What it shows
 
+- Current AJNA supply against the 1B launch baseline
 - Cumulative AJNA burned since September 6, 2023
-- Remaining supply against AJNA's 1B launch baseline
-- A transaction table with direct Etherscan links
-- A very bare UI that is easy to restyle later with Tailwind
+- Burn transaction history with direct Etherscan links
+- A bare layout that is easy to restyle later with Tailwind
 
-## Getting started
+## Local development
 
 1. Install dependencies:
 
@@ -24,37 +26,15 @@ This repo now only handles the UI. The burn data itself comes from the separate 
 
 2. Set the API origin:
 
-   - Copy `.env.example` to `.env`
+   - Copy `.env.example` to `.env.local`
    - Set `VITE_BURNS_DATA_BASE_URL` to the deployed API origin
-   - For local development, point it at your local API server
+   - For local testing, point it at your local API server
 
 3. Start the app:
 
    ```bash
    npm run dev
    ```
-
-## Deployment
-
-This frontend is designed to live on IPFS and be resolved through `ajnaburn.eth.limo`.
-
-The current deployment path is:
-
-1. GitHub Actions builds the Vite app on `main`.
-2. The build output in `dist/` is published to IPFS through Filebase.
-3. GitHub Actions prints the CID in the workflow summary.
-4. You paste that CID into the `contenthash` record for `ajnaburn.eth`.
-5. The site becomes available through the ENS gateway at `https://ajnaburn.eth.limo/`.
-
-If the ENS app wants a prefixed value instead of a bare CID, use `ipfs://<CID>`.
-
-To use the workflow, add these repository secrets:
-
-- `FILEBASE_ACCESS_KEY`
-- `FILEBASE_SECRET_KEY`
-- `FILEBASE_BUCKET`
-
-The frontend build is also wired to the deployed API origin through `VITE_BURNS_DATA_BASE_URL`, so the static site can keep reading fresh JSON from the separate API repo.
 
 ## Scripts
 
@@ -66,10 +46,30 @@ The frontend build is also wired to the deployed API origin through `VITE_BURNS_
 - `npm run format` - format the codebase with Prettier
 - `npm run format:check` - check formatting without writing changes
 
+## Deployment
+
+The frontend is deployed as a static site on IPFS and resolved through ENS.
+
+The current flow is:
+
+1. GitHub Actions builds the app on `main`.
+2. The production build in `dist/` is published to IPFS through Filebase.
+3. The workflow prints the CID in the GitHub Actions summary.
+4. The ENS `contenthash` for `ajnaburn.eth` is updated to that CID.
+5. The site resolves at `https://ajnaburn.eth.limo/`.
+
+GitHub Actions needs these repository secrets:
+
+- `FILEBASE_ACCESS_KEY`
+- `FILEBASE_SECRET_KEY`
+- `FILEBASE_BUCKET`
+
+The deployed frontend also needs the API origin at build time through `VITE_BURNS_DATA_BASE_URL`.
+
 ## Data flow
 
-The frontend fetches the API snapshot at runtime. It does not calculate burn totals, query Dune, or write JSON snapshots anymore.
+The frontend fetches the API snapshot at runtime. It does not calculate burn totals, query Dune, or write JSON snapshots.
 
 If you change the API origin, update `VITE_BURNS_DATA_BASE_URL` and restart the dev server.
 
-If you want to publish a new frontend CID later, rerun the `Deploy frontend to IPFS` workflow and update the ENS `contenthash` to the new `ipfs://...` value.
+If you publish a new frontend CID later, rerun the `Deploy frontend to IPFS` workflow and update the ENS `contenthash` to the new `ipfs://<CID>` value.
