@@ -1,4 +1,4 @@
-import type { BurnTransaction } from '../types/burn.js';
+import type { BurnTransaction } from '../types/api.js';
 
 interface BurnTableProps {
   burns: BurnTransaction[];

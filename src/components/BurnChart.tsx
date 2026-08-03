@@ -1,8 +1,7 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
-import type { BurnTimeRange, BurnTransaction, BurnChartPoint } from '../types/burn.js';
-import { AJNA_CONFIG } from '../lib/ajnaConfig.js';
-import { formatCompactTokenValue, formatUtcDate, formatUtcDateTime } from '../lib/format.js';
-import { toBurnChartPoints } from '../lib/burns.js';
+import type { BurnTimeRange, BurnTransaction } from '../types/api.js';
+import { formatCompactNumber, formatUtcDate, formatUtcDateTime } from '../lib/display.js';
+import { toBurnChartPoints, type BurnChartPoint } from '../lib/burnView.js';
 
 interface BurnChartProps {
   burns: BurnTransaction[];
@@ -88,7 +87,7 @@ export function BurnChart({ burns, timeRange, onTimeRangeChange, summaryText }: 
                 stroke="#726b60"
               />
               <YAxis
-                tickFormatter={formatCompactTokenValue}
+                tickFormatter={formatCompactNumber}
                 stroke="#726b60"
                 width={72}
               />
@@ -100,7 +99,7 @@ export function BurnChart({ burns, timeRange, onTimeRangeChange, summaryText }: 
                 strokeWidth={2}
                 dot={false}
                 isAnimationActive={false}
-                name={`Cumulative AJNA burned (${AJNA_CONFIG.tokenSymbol})`}
+                name="Cumulative AJNA burned"
               />
             </LineChart>
           </ResponsiveContainer>

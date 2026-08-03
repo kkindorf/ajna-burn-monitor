@@ -1,4 +1,4 @@
-import { formatCompactTokenAmount } from '../lib/format.js';
+import { formatCompactAjnaAmount } from '../lib/display.js';
 
 interface MethodologyProps {
   dataConsistent: boolean;
@@ -11,7 +11,7 @@ function buildConsistencyMessage(dataConsistent: boolean, discrepancyRaw: string
   }
 
   const discrepancy = BigInt(discrepancyRaw);
-  const magnitude = formatCompactTokenAmount(discrepancy < 0n ? -discrepancy : discrepancy);
+  const magnitude = formatCompactAjnaAmount(discrepancy < 0n ? -discrepancy : discrepancy);
 
   if (discrepancy < 0n) {
     return `Indexed burn totals exceed the observed reduction in total supply by ${magnitude}.`;

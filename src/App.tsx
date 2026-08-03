@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { BurnSummary, BurnTimeRange, BurnTransaction } from './types/burn.js';
-import { AJNA_CONFIG } from './lib/ajnaConfig.js';
+import type { BurnSummary, BurnTimeRange, BurnTransaction } from './types/api.js';
 import {
   downsampleBurnTransactions,
   filterBurnTransactionsByRange,
   formatBurnChartSummary,
   reverseBurnTransactions,
-} from './lib/burns.js';
-import { formatUtcDateTime } from './lib/format.js';
+} from './lib/burnView.js';
+import { formatUtcDateTime } from './lib/display.js';
 import { BurnChart } from './components/BurnChart.js';
 import { BurnTable } from './components/BurnTable.js';
 import { Methodology } from './components/Methodology.js';
@@ -21,11 +20,19 @@ type LoadState =
 
 const DEFAULT_VISIBLE_ROWS = 25;
 
-function buildPublicUrl(path: string): string {
-  const base = import.meta.env.BASE_URL;
-  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+function getDataBaseUrl(): string {
+  const configuredBase = import.meta.env.VITE_BURNS_DATA_BASE_URL?.trim();
+
+  if (!configuredBase) {
+    throw new Error('VITE_BURNS_DATA_BASE_URL is not set');
+  }
+
+  return configuredBase.endsWith('/') ? configuredBase : `${configuredBase}/`;
+}
+
+function buildDataUrl(path: string): string {
   const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
-  return `${normalizedBase}${normalizedPath}`;
+  return `${getDataBaseUrl()}${normalizedPath}`;
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -53,8 +60,8 @@ export default function App() {
     async function loadData() {
       try {
         const [summary, burns] = await Promise.all([
-          fetchJson<BurnSummary>(buildPublicUrl('data/summary.json')),
-          fetchJson<BurnTransaction[]>(buildPublicUrl('data/burns.json')),
+          fetchJson<BurnSummary>(buildDataUrl('data/summary.json')),
+          fetchJson<BurnTransaction[]>(buildDataUrl('data/burns.json')),
         ]);
 
         if (!active) {
@@ -99,10 +106,10 @@ export default function App() {
         <section className="hero panel">
           <p className="eyebrow">Ajna Burn Monitor</p>
           <h1>Ajna Burn Monitor</h1>
-          <p className="lede">Loading burn data from the generated JSON snapshot.</p>
+          <p className="lede">Loading burn data from the API snapshot.</p>
         </section>
         <section className="panel">
-          <p>Loading dashboard data...</p>
+          <p>Loading dashboard data from the configured API origin...</p>
         </section>
       </main>
     );
@@ -119,6 +126,7 @@ export default function App() {
         <section className="panel state-panel">
           <h2>Data load error</h2>
           <p>{loadState.message}</p>
+          <p className="muted-copy">Set `VITE_BURNS_DATA_BASE_URL` to the deployed API origin, then reload.</p>
           <button type="button" className="button" onClick={retry}>
             Retry
           </button>
@@ -151,8 +159,8 @@ export default function App() {
         })}`
       : 'No burn transactions yet';
 
-  const totalSupplyValue = summary?.currentTotalSupplyFormatted ?? `0 ${AJNA_CONFIG.tokenSymbol}`;
-  const totalBurnedValue = summary?.indexedBurnTotalFormatted ?? `0 ${AJNA_CONFIG.tokenSymbol}`;
+  const totalSupplyValue = summary?.currentTotalSupplyFormatted ?? '0 AJNA';
+  const totalBurnedValue = summary?.indexedBurnTotalFormatted ?? '0 AJNA';
   const percentBurnedValue = summary?.percentSupplyBurned ?? '0.000%';
   const burnCountValue = summary?.burnTransactionCount ?? burns.length;
 

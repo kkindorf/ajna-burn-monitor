@@ -36,16 +36,3 @@ export interface BurnSummary {
   deploymentBlock: number;
   deploymentTimestamp: number;
 }
-
-export interface BurnLogRecord {
-  transactionHash: `0x${string}`;
-  logIndex: number;
-  blockNumber: number;
-  amountBurnedRaw: bigint;
-}
-
-export interface BurnChartPoint extends BurnTransaction {
-  cumulativeBurnedValue: number;
-  remainingSupplyValue: number;
-  amountBurnedValue: number;
-}
