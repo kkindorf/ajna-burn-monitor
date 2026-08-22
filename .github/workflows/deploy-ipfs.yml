@@ -8,12 +8,11 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
   statuses: write
 
 concurrency:
   group: deploy-frontend-ipfs
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -39,25 +38,91 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Deploy build to IPFS
-        id: deploy
-        uses: ipshipyard/ipfs-deploy-action@v1
+      - name: Install Kubo CLI
+        timeout-minutes: 5
+        env:
+          KUBO_VERSION: v0.33.0
+        run: |
+          set -euo pipefail
+
+          archive="kubo_${KUBO_VERSION}_linux-amd64.tar.gz"
+          release_url="https://github.com/ipfs/kubo/releases/download/${KUBO_VERSION}"
+          curl_options=(
+            --fail
+            --location
+            --retry 3
+            --retry-all-errors
+            --retry-delay 2
+            --connect-timeout 10
+            --max-time 180
+          )
+
+          curl "${curl_options[@]}" --output "$archive" "$release_url/$archive"
+          curl "${curl_options[@]}" --output "$archive.sha512" "$release_url/$archive.sha512"
+          sha512sum --check "$archive.sha512"
+          tar -xzf "$archive"
+          sudo install -m 0755 kubo/ipfs /usr/local/bin/ipfs
+          ipfs version
+
+      - name: Create IPFS CAR
+        id: car
+        run: |
+          set -euo pipefail
+
+          ipfs init
+          cid="$(ipfs add --cid-version 1 --chunker size-1048576 -Q -r dist)"
+          ipfs dag export "$cid" > build.car
+          test -s build.car
+          echo "cid=$cid" >> "$GITHUB_OUTPUT"
+
+      - name: Upload CAR artifact
+        uses: actions/upload-artifact@v4
         with:
-          path-to-deploy: dist
+          name: ajna-burn-monitor-${{ github.sha }}-${{ steps.car.outputs.cid }}
+          path: build.car
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload CAR to Filebase
+        timeout-minutes: 5
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.FILEBASE_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.FILEBASE_SECRET_KEY }}
+          AWS_REGION: us-east-1
+          FILEBASE_BUCKET: ${{ secrets.FILEBASE_BUCKET }}
+          CID: ${{ steps.car.outputs.cid }}
+        run: |
+          set -euo pipefail
+
+          object_key="ajna-burn-monitor-${GITHUB_SHA:0:7}-${CID}.car"
+          aws --endpoint-url https://s3.filebase.com s3 cp \
+            build.car "s3://${FILEBASE_BUCKET}/${object_key}" \
+            --metadata 'import=car' \
+            --only-show-errors
+
+      - name: Publish IPFS commit status
+        uses: actions/github-script@v7
+        env:
+          CID: ${{ steps.car.outputs.cid }}
+        with:
           github-token: ${{ github.token }}
-          filebase-access-key: ${{ secrets.FILEBASE_ACCESS_KEY }}
-          filebase-secret-key: ${{ secrets.FILEBASE_SECRET_KEY }}
-          filebase-bucket: ${{ secrets.FILEBASE_BUCKET }}
-          set-pr-comment: false
-          set-github-status: true
-          pin-name: ajna-burn-monitor-${{ github.sha }}
+          script: |
+            const cid = process.env.CID;
+            await github.rest.repos.createCommitStatus({
+              ...context.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'IPFS deployment',
+              description: `Published ${cid}`,
+              target_url: `https://ipfs.io/ipfs/${cid}/`,
+            });
 
       - name: Publish CID summary
         run: |
           {
             echo "### IPFS deployment"
             echo ""
-            echo "- CID: \`${{ steps.deploy.outputs.cid }}\`"
-            echo "- Gateway preview: https://ipfs.io/ipfs/${{ steps.deploy.outputs.cid }}/"
-            echo "- ENS target: \`ipfs://${{ steps.deploy.outputs.cid }}\`"
+            echo "- CID: \`${{ steps.car.outputs.cid }}\`"
+            echo "- Gateway preview: https://ipfs.io/ipfs/${{ steps.car.outputs.cid }}/"
+            echo "- ENS target: \`ipfs://${{ steps.car.outputs.cid }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
