@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 20
 
     env:
-      VITE_BURNS_DATA_BASE_URL: https://ajna-burn-monitor-api.vercel.app/
+      VITE_BURNS_DATA_BASE_URL: https://ajna-burn-monitor-api-5hhr.vercel.app/
 
     steps:
       - name: Checkout repository
