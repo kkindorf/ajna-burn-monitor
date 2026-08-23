@@ -7,7 +7,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { BurnChartData, RangeOptionView } from '../../types/dashboard.js';
+import type { BurnChartPoint, BurnTimeRange } from '../../lib/burnView.js';
+import { formatCompactNumber, formatUtcDate } from '../../lib/display.js';
 import { EmptyState } from '../atoms/EmptyState.js';
 import { SectionHeading } from '../atoms/SectionHeading.js';
 import { Surface } from '../atoms/Surface.js';
@@ -15,16 +16,23 @@ import { ChartTooltip } from '../molecules/ChartTooltip.js';
 import { RangeSelector } from '../molecules/RangeSelector.js';
 
 interface BurnChartProps {
-  chart: BurnChartData;
-  summaryText: string;
-  rangeOptions: RangeOptionView[];
+  points: BurnChartPoint[];
+  timeRange: BurnTimeRange;
+  onTimeRangeChange: (range: BurnTimeRange) => void;
 }
 
 export function BurnChart({
-  chart,
-  summaryText,
-  rangeOptions,
+  points,
+  timeRange,
+  onTimeRangeChange,
 }: BurnChartProps) {
+  const firstBurn = points[0];
+  const lastBurn = points.at(-1);
+  const chartSummary =
+    firstBurn && lastBurn
+      ? `Cumulative AJNA burned increased from ${firstBurn.cumulativeBurnedFormatted} on ${formatUtcDate(firstBurn.timestamp)} to ${lastBurn.cumulativeBurnedFormatted} on ${formatUtcDate(lastBurn.timestamp)}.`
+      : null;
+
   return (
     <Surface className="grid gap-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -32,25 +40,31 @@ export function BurnChart({
           eyebrow="Chart"
           title="Cumulative AJNA burned over time"
         />
-        <RangeSelector options={rangeOptions} />
+        <RangeSelector value={timeRange} onChange={onTimeRangeChange} />
       </div>
-      <p className="text-sm text-stone-600">{summaryText}</p>
-      {chart.hasData ? (
-        <div
-          className="h-72 text-emerald-800 sm:h-80"
-          aria-label="Cumulative AJNA burned line chart"
-        >
+      {chartSummary && <p className="text-sm text-stone-600">{chartSummary}</p>}
+      {points.length === 0 ? (
+        <EmptyState>
+          No burn data is available for the selected range.
+        </EmptyState>
+      ) : (
+        <div className="h-72 text-emerald-800 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chart.points}>
+            <LineChart
+              data={points}
+              accessibilityLayer
+              title="Cumulative AJNA burned over time"
+              desc="Use the arrow keys to inspect burn totals by date."
+            >
               <CartesianGrid className="stroke-stone-300" />
               <XAxis
                 dataKey="timestamp"
-                tickFormatter={chart.dateTickFormatter}
+                tickFormatter={(timestamp) => formatUtcDate(Number(timestamp))}
                 minTickGap={28}
                 className="fill-stone-600 text-xs"
               />
               <YAxis
-                tickFormatter={chart.valueTickFormatter}
+                tickFormatter={formatCompactNumber}
                 width={72}
                 className="fill-stone-600 text-xs"
               />
@@ -66,10 +80,6 @@ export function BurnChart({
             </LineChart>
           </ResponsiveContainer>
         </div>
-      ) : (
-        <EmptyState>
-          No burn data is available for the selected range.
-        </EmptyState>
       )}
     </Surface>
   );

@@ -1,10 +1,16 @@
+import { formatUtcDateTime } from '../../lib/display.js';
 import { Surface } from '../atoms/Surface.js';
 
 interface DashboardHeaderProps {
-  updatedText: string;
+  generatedAt: string;
 }
 
-export function DashboardHeader({ updatedText }: DashboardHeaderProps) {
+export function DashboardHeader({ generatedAt }: DashboardHeaderProps) {
+  const timestamp = Math.floor(new Date(generatedAt).getTime() / 1000);
+  const updatedText = Number.isNaN(timestamp)
+    ? 'Not yet synced'
+    : `Updated ${formatUtcDateTime(timestamp)} UTC`;
+
   return (
     <Surface className="flex flex-wrap items-start justify-between gap-4">
       <header>

@@ -1,52 +1,50 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { fetchBurnSnapshot } from '../lib/api.js';
-import type { BurnSummary, BurnTransaction } from '../types/api.js';
+import { useEffect, useState } from 'react';
+import { fetchBurnSnapshot } from '../lib/burnSnapshotClient.js';
+import type { BurnSummary, BurnTransaction } from '../types/burnSnapshot.js';
 
 type BurnDataState =
   | { status: 'loading' }
   | { status: 'ready'; summary: BurnSummary; burns: BurnTransaction[] }
   | { status: 'error'; message: string };
 
-export function useBurnData() {
+type BurnData = BurnDataState & { retry: () => void };
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown data load error';
+}
+
+export function useBurnData(): BurnData {
   const [state, setState] = useState<BurnDataState>({ status: 'loading' });
-  const [requestVersion, setRequestVersion] = useState(0);
+  const [refreshCount, setRefreshCount] = useState(0);
 
   useEffect(() => {
-    let active = true;
+    let cancelled = false;
 
-    async function load() {
+    async function loadBurnData() {
       try {
-        const { summary, burns } = await fetchBurnSnapshot({
-          forceRefresh: requestVersion > 0,
-        });
+        const { summary, burns } = await fetchBurnSnapshot();
 
-        if (!active) {
-          return;
+        if (!cancelled) {
+          setState({ status: 'ready', summary, burns });
         }
-
-        setState({ status: 'ready', summary, burns });
       } catch (error) {
-        if (!active) {
-          return;
+        if (!cancelled) {
+          setState({ status: 'error', message: getErrorMessage(error) });
         }
-
-        setState({
-          status: 'error',
-          message:
-            error instanceof Error ? error.message : 'Unknown data load error',
-        });
       }
     }
 
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [requestVersion]);
+    void loadBurnData();
 
-  const retry = useCallback(() => {
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshCount]);
+
+  const retry = () => {
     setState({ status: 'loading' });
-    setRequestVersion((version) => version + 1);
-  }, []);
-  return useMemo(() => ({ ...state, retry }), [state, retry]);
+    setRefreshCount((count) => count + 1);
+  };
+
+  return { ...state, retry };
 }

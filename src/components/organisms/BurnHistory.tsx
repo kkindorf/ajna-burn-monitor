@@ -1,4 +1,4 @@
-import type { BurnHistoryRow } from '../../types/dashboard.js';
+import type { BurnTransaction } from '../../types/burnSnapshot.js';
 import { Button } from '../atoms/Button.js';
 import { EmptyState } from '../atoms/EmptyState.js';
 import { SectionHeading } from '../atoms/SectionHeading.js';
@@ -6,13 +6,12 @@ import { Surface } from '../atoms/Surface.js';
 import { BurnTableRow } from '../molecules/BurnTableRow.js';
 
 interface BurnHistoryProps {
-  rows: BurnHistoryRow[];
-  hasHistory: boolean;
+  rows: BurnTransaction[];
   hasMore: boolean;
   onLoadMore: () => void;
 }
 
-const headings = [
+const tableHeadings = [
   'Date',
   'AJNA burned',
   'Cumulative burned',
@@ -20,12 +19,7 @@ const headings = [
   'Transaction',
 ];
 
-export function BurnHistory({
-  rows,
-  hasHistory,
-  hasMore,
-  onLoadMore,
-}: BurnHistoryProps) {
+export function BurnHistory({ rows, hasMore, onLoadMore }: BurnHistoryProps) {
   return (
     <Surface className="grid gap-4">
       <SectionHeading
@@ -33,13 +27,15 @@ export function BurnHistory({
         title="Burn transactions"
         description="Visible burn history starting September 6, 2023."
       />
-      {hasHistory ? (
+      {rows.length === 0 ? (
+        <EmptyState>No burn transactions are available.</EmptyState>
+      ) : (
         <>
           <div className="overflow-x-auto">
             <table className="w-full min-w-2xl text-left text-sm">
               <thead className="text-xs tracking-wider text-stone-600 uppercase">
                 <tr>
-                  {headings.map((heading) => (
+                  {tableHeadings.map((heading) => (
                     <th
                       key={heading}
                       scope="col"
@@ -51,8 +47,8 @@ export function BurnHistory({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <BurnTableRow key={row.id} row={row} />
+                {rows.map((burn) => (
+                  <BurnTableRow key={burn.transactionHash} burn={burn} />
                 ))}
               </tbody>
             </table>
@@ -63,10 +59,6 @@ export function BurnHistory({
             </Button>
           ) : null}
         </>
-      ) : (
-        <EmptyState>
-          No burn transactions were found for the selected period.
-        </EmptyState>
       )}
     </Surface>
   );

@@ -4,7 +4,5 @@ dist
 .env
 .env.local
 .env.*.local
-coverage
 *.log
 *.tsbuildinfo
-public/data/*.tmp.json
