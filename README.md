@@ -14,7 +14,7 @@ The app reads snapshot data from the separate `ajna-burn-monitor-api` repo:
 - Current AJNA supply against the 1B launch baseline
 - Cumulative AJNA burned since September 6, 2023
 - Burn transaction history with direct Etherscan links
-- A bare layout that is easy to restyle later with Tailwind
+- A responsive Tailwind CSS interface built from Atomic Design components
 
 ## Local development
 
@@ -45,6 +45,17 @@ The app reads snapshot data from the separate `ajna-burn-monitor-api` repo:
 - `npm run lint` - run ESLint
 - `npm run format` - format the codebase with Prettier
 - `npm run format:check` - check formatting without writing changes
+
+## UI architecture
+
+The UI uses Tailwind CSS and Atomic Design:
+
+- `src/components/atoms` contains focused, reusable primitives
+- `src/components/molecules` combines atoms into small controls and data views
+- `src/components/organisms` composes dashboard sections
+- `src/hooks` contains data fetching and dashboard interaction state
+
+`App.tsx` only selects the loading, error, or ready dashboard state. ESLint enforces a 100-line maximum for component files.
 
 ## Deployment
 
