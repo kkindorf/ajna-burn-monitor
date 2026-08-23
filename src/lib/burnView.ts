@@ -18,7 +18,9 @@ function rawTokenAmountToNumber(raw: string): number {
   return parsed / TOKEN_SCALE;
 }
 
-export function reverseBurnTransactions(transactions: BurnTransaction[]): BurnTransaction[] {
+export function reverseBurnTransactions(
+  transactions: BurnTransaction[],
+): BurnTransaction[] {
   return [...transactions].sort((left, right) => {
     if (left.timestamp !== right.timestamp) {
       return right.timestamp - left.timestamp;
@@ -44,7 +46,10 @@ export function filterBurnTransactionsByRange(
   return transactions.filter((transaction) => transaction.timestamp >= cutoff);
 }
 
-export function downsampleBurnTransactions(transactions: BurnTransaction[], maxPoints = 180): BurnTransaction[] {
+export function downsampleBurnTransactions(
+  transactions: BurnTransaction[],
+  maxPoints = 180,
+): BurnTransaction[] {
   if (transactions.length <= maxPoints) {
     return [...transactions];
   }
@@ -60,7 +65,9 @@ export function downsampleBurnTransactions(transactions: BurnTransaction[], maxP
   return sampled;
 }
 
-export function formatBurnChartSummary(transactions: BurnTransaction[]): string {
+export function formatBurnChartSummary(
+  transactions: BurnTransaction[],
+): string {
   if (transactions.length === 0) {
     return 'No AJNA burn transactions were found in the selected range.';
   }
@@ -70,11 +77,17 @@ export function formatBurnChartSummary(transactions: BurnTransaction[]): string 
   return `Cumulative AJNA burned increased from ${first.cumulativeBurnedFormatted} on ${first.date} to ${last.cumulativeBurnedFormatted} on ${last.date}.`;
 }
 
-export function toBurnChartPoints(transactions: BurnTransaction[]): BurnChartPoint[] {
+export function toBurnChartPoints(
+  transactions: BurnTransaction[],
+): BurnChartPoint[] {
   return transactions.map((transaction) => ({
     ...transaction,
-    cumulativeBurnedValue: rawTokenAmountToNumber(transaction.cumulativeBurnedRaw),
-    remainingSupplyValue: rawTokenAmountToNumber(transaction.remainingSupplyRaw),
+    cumulativeBurnedValue: rawTokenAmountToNumber(
+      transaction.cumulativeBurnedRaw,
+    ),
+    remainingSupplyValue: rawTokenAmountToNumber(
+      transaction.remainingSupplyRaw,
+    ),
     amountBurnedValue: rawTokenAmountToNumber(transaction.amountBurnedRaw),
   }));
 }
