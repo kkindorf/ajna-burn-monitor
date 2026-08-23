@@ -1,10 +1,12 @@
 # Ajna Burn Monitor
 
-Ajna Burn Monitor is a minimal frontend for the AJNA burn dashboard.
+Ajna Burn Monitor is a small frontend for exploring AJNA burn activity.
 
 The live site is [ajnaburn.eth.limo](https://ajnaburn.eth.limo/).
 
-The app reads snapshot data from the separate `ajna-burn-monitor-api` repo:
+The app reads two static JSON files produced by the companion
+[`ajna-burn-snapshot-pipeline`](https://github.com/kkindorf/ajna-burn-snapshot-pipeline)
+repository:
 
 - `/data/summary.json`
 - `/data/burns.json`
@@ -24,11 +26,12 @@ The app reads snapshot data from the separate `ajna-burn-monitor-api` repo:
    npm install
    ```
 
-2. Set the API origin:
+2. Set the snapshot origin:
 
    - Copy `.env.example` to `.env.local`
-   - Set `VITE_BURNS_DATA_BASE_URL` to the deployed API origin
-   - For local testing, point it at your local API server
+   - Set `VITE_BURNS_DATA_BASE_URL` to the deployed snapshot origin
+   - For local testing, serve the pipeline repository over HTTP and point the
+     variable at that server's origin
 
 3. Start the app:
 
@@ -75,12 +78,16 @@ GitHub Actions needs these repository secrets:
 - `FILEBASE_SECRET_KEY`
 - `FILEBASE_BUCKET`
 
-The deployed frontend also needs the API origin at build time through `VITE_BURNS_DATA_BASE_URL`.
+The deployed frontend also needs the snapshot origin at build time through
+`VITE_BURNS_DATA_BASE_URL`.
 
 ## Data flow
 
-The frontend fetches the API snapshot at runtime. It does not calculate burn totals, query Dune, or write JSON snapshots.
+The frontend fetches both JSON files at runtime and prepares them for display.
+Burn indexing, total calculations, and snapshot generation live in the companion
+data repository.
 
-If you change the API origin, update `VITE_BURNS_DATA_BASE_URL` and restart the dev server.
+If you change the snapshot origin, update `VITE_BURNS_DATA_BASE_URL` and restart
+the dev server.
 
 If you publish a new frontend CID later, rerun the `Deploy frontend to IPFS` workflow and update the ENS `contenthash` to the new `ipfs://<CID>` value.

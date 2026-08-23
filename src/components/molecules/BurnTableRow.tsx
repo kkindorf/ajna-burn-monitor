@@ -1,36 +1,45 @@
-import type { BurnHistoryRow } from '../../types/dashboard.js';
+import type { BurnTransaction } from '../../types/burnSnapshot.js';
+import { formatUtcDate } from '../../lib/display.js';
 
 interface BurnTableRowProps {
-  row: BurnHistoryRow;
+  burn: BurnTransaction;
 }
 
-const cellClassName =
+const tableCellClassName =
   'border-b border-stone-200 px-2.5 py-3 align-top first:pl-0 last:pr-0';
 
-export function BurnTableRow({ row }: BurnTableRowProps) {
+export function BurnTableRow({ burn }: BurnTableRowProps) {
+  const burnDate = new Date(burn.timestamp * 1000);
+
   return (
     <tr>
-      <td className={cellClassName}>
-        <time dateTime={row.dateTime} title={row.dateTitle}>
-          {row.date}
+      <td className={tableCellClassName}>
+        <time dateTime={burnDate.toISOString()} title={burnDate.toUTCString()}>
+          {formatUtcDate(burn.timestamp)}
         </time>
       </td>
-      <td className={cellClassName} title={row.amountBurnedTitle}>
-        {row.amountBurned}
+      <td className={tableCellClassName} title={`${burn.amountBurnedRaw} raw`}>
+        {burn.amountBurnedFormatted}
       </td>
-      <td className={cellClassName} title={row.cumulativeBurnedTitle}>
-        {row.cumulativeBurned}
+      <td
+        className={tableCellClassName}
+        title={`${burn.cumulativeBurnedRaw} raw`}
+      >
+        {burn.cumulativeBurnedFormatted}
       </td>
-      <td className={cellClassName} title={row.remainingSupplyTitle}>
-        {row.remainingSupply}
+      <td
+        className={tableCellClassName}
+        title={`${burn.remainingSupplyRaw} raw`}
+      >
+        {burn.remainingSupplyFormatted}
       </td>
-      <td className={cellClassName}>
+      <td className={tableCellClassName}>
         <a
           className="font-medium text-emerald-800 underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
-          href={row.transactionUrl}
+          href={`https://etherscan.io/tx/${burn.transactionHash}`}
           target="_blank"
           rel="noreferrer noopener"
-          aria-label={row.transactionLabel}
+          aria-label={`View transaction ${burn.transactionHash} on Etherscan`}
         >
           View on Etherscan
         </a>

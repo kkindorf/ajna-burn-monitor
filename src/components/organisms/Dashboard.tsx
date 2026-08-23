@@ -1,8 +1,9 @@
-import type { DashboardReadyState } from '../../types/dashboard.js';
+import type { DashboardReadyState } from '../../hooks/useBurnDashboard.js';
 import { BurnChart } from './BurnChart.js';
 import { BurnHistory } from './BurnHistory.js';
 import { DashboardHeader } from './DashboardHeader.js';
 import { DashboardMetrics } from './DashboardMetrics.js';
+import { DashboardShell } from './DashboardShell.js';
 import { Methodology } from './Methodology.js';
 
 interface DashboardProps {
@@ -11,23 +12,23 @@ interface DashboardProps {
 
 export function Dashboard({ dashboard }: DashboardProps) {
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-900">
-      <div className="mx-auto grid w-full max-w-7xl gap-4 px-2 py-2 sm:px-4 sm:py-6">
-        <DashboardHeader updatedText={dashboard.dataUpdatedText} />
-        <DashboardMetrics metrics={dashboard.metrics} />
-        <BurnChart
-          chart={dashboard.chart}
-          summaryText={dashboard.chartSummary}
-          rangeOptions={dashboard.rangeOptions}
-        />
-        <BurnHistory
-          rows={dashboard.tableRows}
-          hasHistory={dashboard.hasHistory}
-          hasMore={dashboard.hasMoreRows}
-          onLoadMore={dashboard.onLoadMore}
-        />
-        <Methodology consistency={dashboard.consistency} />
-      </div>
-    </main>
+    <DashboardShell>
+      <DashboardHeader generatedAt={dashboard.summary.generatedAt} />
+      <DashboardMetrics
+        summary={dashboard.summary}
+        latestBurn={dashboard.visibleBurns[0]}
+      />
+      <BurnChart
+        points={dashboard.chartPoints}
+        timeRange={dashboard.timeRange}
+        onTimeRangeChange={dashboard.onTimeRangeChange}
+      />
+      <BurnHistory
+        rows={dashboard.visibleBurns}
+        hasMore={dashboard.hasMoreBurns}
+        onLoadMore={dashboard.onLoadMore}
+      />
+      <Methodology />
+    </DashboardShell>
   );
 }

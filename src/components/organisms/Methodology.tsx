@@ -1,36 +1,29 @@
-import type { SupplyConsistency } from '../../types/dashboard.js';
 import { SectionHeading } from '../atoms/SectionHeading.js';
 import { Surface } from '../atoms/Surface.js';
 
-interface MethodologyProps {
-  consistency: SupplyConsistency;
-}
-
-export function Methodology({ consistency }: MethodologyProps) {
+export function Methodology() {
   return (
     <Surface className="grid gap-4">
       <SectionHeading eyebrow="Methodology" title="How this dashboard works" />
       <div className="grid gap-2 text-sm text-stone-600">
         <p>
-          AJNA burns are indexed from Dune&apos;s ERC-20 transfer tables by
-          filtering transfers sent to the zero address.
+          The data pipeline fetches AJNA ERC-20 transfer logs sent to the zero
+          address through Etherscan, then publishes the results as a snapshot.
         </p>
         <p>
-          The burn series starts on September 6, 2023 so it skips the
-          launch-phase transfer on January 24, 2023.
+          The public burn series starts at Ethereum block 18,078,582 on
+          September 6, 2023. Earlier zero-address transfers were allocation
+          movements, so they are not counted against the 1B launch-supply
+          baseline.
         </p>
         <p>
-          The chart, summary metrics, and transaction table all use that same
-          visible series against AJNA&apos;s documented 1B protocol-launch / max
-          supply.
-        </p>
-        <p>
-          Burn totals are supplied by the API snapshot, and every burn
-          transaction links to Etherscan.
+          That snapshot supplies the chart, summary metrics, transaction
+          history, and Etherscan links for inspecting each transaction.
         </p>
       </div>
-      <p className={`rounded-2xl px-4 py-3 text-sm ${consistency.className}`}>
-        {consistency.message}
+      <p className="rounded-2xl bg-emerald-800/10 px-4 py-3 text-sm text-emerald-800">
+        Published snapshots are verified so indexed burn totals match the
+        observed reduction in total supply.
       </p>
     </Surface>
   );
